@@ -1,0 +1,15 @@
+Enter C Code,Identified Vulnerabilities,Repaired Code,timestamp
+"#include <stdio.h>
+#include <string.h>
+
+void get_user_name() {
+    char name[5];
+    printf(""Enter your name: "");
+    gets(name);
+    printf(""Hello, %s!\n"", name);
+}
+
+int main() {
+    get_user_name();
+    return 0;
+}",,,2024-11-06 15:06:50.962027
