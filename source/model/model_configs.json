@@ -1,0 +1,12 @@
+{
+    "models": {
+        "meta-llama/Meta-Llama-3-8B-Instruct": {
+            "max_context": 2048,
+            "max_response": 1024,
+            "temperature": 0.7,
+            "top_k": 50,
+            "top_p": 0.95,
+            "description": "Llama 3 8B Instruct Model"
+        }
+    }
+}
