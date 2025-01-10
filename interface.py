@@ -14,18 +14,19 @@ def create_interface():
         with gr.Column():
             # Display the image in the top-right corner on the secondary page
             with gr.Row():
+                gr.Markdown("# Code Repair with LLMs")  
                 gr.Markdown("")  # Filler to push logo to the right
-                gr.Image("logo.png", label="Logo", show_download_button=False, show_fullscreen_button=False, show_label=False)
+                gr.Image("logo.png", label="Logo", show_download_button=False, show_fullscreen_button=False, show_label=False, height=250, width=450, container=False)
 
             # Chat Tab
             with gr.Tab("Chat"):
                 choices = [file for file in os.listdir('./models')]
-                gr.CheckboxGroup(["Bug Finding", "Pattern Matching", "Patch Generation", "Patch Validation"], label="Desired steps", select_all=True)
+                gr.CheckboxGroup(["Bug Finding", "Pattern Matching", "Patch Generation", "Patch Validation"], label="Desired steps")
  
                 model_dropdown = gr.Dropdown(
                     label="Model Selection",
                     choices=choices,
-                    multiselect=False
+                    multiselect=True
                 )
 
                 # TODO: expecting a codebase
