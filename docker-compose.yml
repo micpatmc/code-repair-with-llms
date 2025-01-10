@@ -1,17 +1,14 @@
-version: '3.9'
-
 services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: dev_environment
-    volumes:
-      - ${PROJECT_PATH}:/code-repair-with-llms  # Sync local files with the container
-    working_dir: /code-repair-with-llms
-    tty: true
-    stdin_open: true
-    environment:
-      - PYTHONUNBUFFERED=1
+      dockerfile: .docker/Dockerfile # Adjust the path to the Dockerfile
+    container_name: fastapi-dev
     ports:
-      - "8000:8000" # Example for exposing ports
+      - "8000:8000" # Expose the app on localhost:8000
+    volumes:
+      - .:/app # Mount the current directory to the container for live updates
+      - /app/__pycache__ # Prevent caching issues
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
