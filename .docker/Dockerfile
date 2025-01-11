@@ -1,4 +1,4 @@
-# Use an official Python image
+# Use Python image
 FROM python:3.12-slim
 
 # Set environment variables
@@ -15,11 +15,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create a working directory
 WORKDIR /app
 
-# Copy requirements.txt and install dependencies
+# Copy requirements.txt & install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files into the container
+# Copy project files into container
 COPY . .
 
 # Expose port 8000 for FastAPI
