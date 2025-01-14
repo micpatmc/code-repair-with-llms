@@ -39,8 +39,18 @@ class Pipeline():
         return pm.get_matches()
 
     # third stage creates the patches and places them in the code
-    def patch_generation(self):
-        pass
+    def patch_generation(self, patterns, output_dir="patch_candidates"):
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        for i, pattern in enumerate(patterns):
+            if pattern.strip():  # Ensure the pattern is not empty
+                file_name = f"{output_dir}/patch_candidate_{i+1}.java"
+                with open(file_name, "w") as file:
+                    file.write(pattern)
+            else:
+                print(f"Skipping empty pattern at index {i}")
+        return output_dir
 
     # last stage determines if the fixes are corrected
     def patch_validation(self):
@@ -101,7 +111,7 @@ def main():
     pipeline = Pipeline()
     
     # process file input
-    code_dict = create_code_dict('testSD1/source/pipeline/00_initial_java.json')
+    code_dict = create_code_dict('source/pipeline/00_initial_java.json')
 
     # set the model to whatever the selection is
     pipeline.set_model("meta-llama/Meta-Llama-3-8B-Instruct")
@@ -121,6 +131,9 @@ def main():
 
     # patch generation
     # take the code snippets and create multiple files with potential fixes (patch candidates)
+    write_to_file("\n#### Patch Generation ####\n")
+    patch_dir = pipeline.patch_generation(patterns)
+    write_to_file(f"Patch candidates written to directory: {patch_dir}")
 
     # patch validation
     # test the candidates and use the optimal one (passes the test suite)
