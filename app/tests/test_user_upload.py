@@ -54,4 +54,9 @@ def test_single_file_upload():
     assert uploaded_file_path.exists(), f"File was not uploaded at {uploaded_file_path}"
 
 
-            
+def test_multiple_files_uploaded():
+    '''
+        Test uploading multiple files not including any zips
+    '''
+
+    

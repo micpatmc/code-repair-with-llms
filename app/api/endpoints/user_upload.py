@@ -13,12 +13,10 @@ UPLOAD_DIR = Path("./uploads")
 
 
 @router.post("/user-upload")
-async def user_upload(files: List[UploadFile] = File(...)):
+async def user_upload(files: List[UploadFile] = File(None, description="Files to be uploaded to the pipeline")):
     '''
     API Endpoint that handles user uploading file.
-
     Handles the upload of a Zip file, multiple files, and a single file.
-
     Creates a unique folder within ./uploads for each API call made to upload files
 
     Parameters:

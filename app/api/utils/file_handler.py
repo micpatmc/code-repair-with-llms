@@ -4,11 +4,17 @@ from pathlib import Path
 async def upload_file(new_folder: Path, fid: str, file: UploadFile = File(...)):
     '''
     Handles the upload of a single file
-
     Saves file to the given Path of the new folder
 
+    Parameters:
+    - new_folder: Path to the uploads folder with this instances own UUID folder
+    - fid: The unique folder id
+    - file: Uploaded file from frontend
+    
     Returns:
-
+    - filename: name of file uploaded
+    - message: success
+    - fid
     '''
 
     try:

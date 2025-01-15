@@ -4,7 +4,7 @@ from app.api.router import api_router
 
 app = FastAPI(
     title="Code Repair With LLM's",
-    description="Backend server for interaction of frontend with ARCC"
+    description="Backend server with LLM's"
 )
 
 # Websocket for continued connection to backend mostly used for chat

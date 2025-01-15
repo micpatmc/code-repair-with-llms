@@ -6,13 +6,20 @@ from pathlib import Path
 async def upload_zip(new_folder: Path, fid: str, file: UploadFile = File(...)):
     '''
     Handles the upload of a Zip file
-
     Unzips and stores all the files to the given Path of the new folder
 
+    Parameters:
+    - new_folder: Path to the uploads folder with this instances own UUID folder
+    - fid: The unique folder id
+    - file: zip file uploaded
+    
     Returns:
-
+    - extracted_files: list of files extracted from the zip
+    - message: success
+    - fid
     '''
 
+    # Shouldn't ever reach this point this is checked in user_upload.py
     if not file.filename.endswith(".zip"):
         raise HTTPException(status_code=500, detail="Only ZIP files allowed.")
     
