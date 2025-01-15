@@ -25,22 +25,25 @@ async def user_upload(files: List[UploadFile] = File(...)):
     - files List[UploadFile]: File or files to be uploaded to the pipeline
 
     Returns:
-    - message Str: Message for upload success
+    - Filename: Name of file uploaded
+    - Message: Success of upload
+    - fid: unique id of file directory within the backend server
     '''
     if not files:
         raise HTTPException(status_code=400, detail="No files uploaded.")
     
-    new_folder = UPLOAD_DIR / str(uuid.uuid4())
+    unique_fid = str(uuid.uuid4())
+    new_folder = UPLOAD_DIR / unique_fid
     new_folder.mkdir(parents=True, exist_ok=True)
     
     # Switch to determine which type of upload
     match len(files), files[0].filename.endswith(".zip") if files else False:
         
         case (1, True):
-            return await upload_zip(new_folder, files[0])
+            return await upload_zip(new_folder, unique_fid, files[0])
         
         case (1, False):
-            return await upload_file(new_folder, files[0])
+            return await upload_file(new_folder, unique_fid, files[0])
         
         case (_, _):
-            return await upload_folder(new_folder, files)
+            return await upload_folder(new_folder, unique_fid, files)

@@ -1,7 +1,7 @@
 from fastapi import File, UploadFile, HTTPException
 from pathlib import Path
 
-async def upload_file(new_folder: Path, file: UploadFile = File(...)):
+async def upload_file(new_folder: Path, fid: str, file: UploadFile = File(...)):
     '''
     Handles the upload of a single file
 
@@ -17,7 +17,7 @@ async def upload_file(new_folder: Path, file: UploadFile = File(...)):
             content = await file.read()
             f.write(content)
         
-        return {"filename": file.filename, "message": "File uploaded successfully"}
+        return {"filename": file.filename, "message": "File uploaded successfully", "fid": fid}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {e}")
