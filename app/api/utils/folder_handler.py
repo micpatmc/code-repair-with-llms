@@ -2,20 +2,20 @@ from fastapi import APIRouter, File, UploadFile, HTTPException
 from pathlib import Path
 from typing import List
 
-async def upload_folder(new_folder: Path, fid: str, files: List[UploadFile] = File(...)):
+async def upload_folder(new_folder: Path, session_id: str, files: List[UploadFile] = File(...)):
     '''
     Handles the upload of multiple or a folder of files
     Saves file to the given Path of the new folder
 
     Parameters:
     - new_folder: Path to the uploads folder with this instances own UUID folder
-    - fid: The unique folder id
+    - session_id: The unique id of current pipeline session also corresponds to folder within ./uploads
     - files: list of files to be uploaded
     
     Returns:
     - filename: list of files uploaded
     - message: success
-    - fid
+    - session_id
     '''
 
     try:

@@ -3,20 +3,20 @@ import zipfile
 from fastapi import File, UploadFile, HTTPException, Depends
 from pathlib import Path
 
-async def upload_zip(new_folder: Path, fid: str, file: UploadFile = File(...)):
+async def upload_zip(new_folder: Path, session_id: str, file: UploadFile = File(...)):
     '''
     Handles the upload of a Zip file
     Unzips and stores all the files to the given Path of the new folder
 
     Parameters:
     - new_folder: Path to the uploads folder with this instances own UUID folder
-    - fid: The unique folder id
+    - session_id: The unique id of current pipeline session also corresponds to folder within ./uploads
     - file: zip file uploaded
     
     Returns:
     - extracted_files: list of files extracted from the zip
     - message: success
-    - fid
+    - session_id
     '''
 
     # Shouldn't ever reach this point this is checked in user_upload.py
@@ -39,5 +39,5 @@ async def upload_zip(new_folder: Path, fid: str, file: UploadFile = File(...)):
     
     os.remove(zip_path)
 
-    return {"extracted_files": extracted_files, "message": "Zip File uploaded and extracted successfully", "fid": fid}
+    return {"extracted_files": extracted_files, "message": "Zip File uploaded and extracted successfully", "session_id": session_id}
     

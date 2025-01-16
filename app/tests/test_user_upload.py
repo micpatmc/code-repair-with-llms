@@ -31,7 +31,7 @@ def test_no_files_uploaded():
     assert response.json()["detail"] == "No files uploaded."
 
 
-def test_single_file_upload():
+def test_single_file_uploaded():
     '''
         Test uploading a single non-zipped file
     '''
@@ -70,4 +70,16 @@ def test_multiple_files_uploaded():
 
     assert response.status_code == 200
     assert response.json()["message"] == "Folder uploaded successfully."
-    
+
+
+def test_zip_with_single_file_uploaded():
+    '''
+        Test uploading a zip file with one file
+    '''
+
+
+def test_zip_with_multiple_files_uploaded():
+    '''
+        Test uploading a zip file with many files
+    '''
+
