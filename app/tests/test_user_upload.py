@@ -47,7 +47,7 @@ def test_single_file_uploaded():
     assert response.json()["message"] == "File uploaded successfully"
     
     # Construct the file path using the returned folder ID (`fid`)
-    uploaded_file_path = UPLOAD_DIR / response.json()["fid"] / "test.txt"
+    uploaded_file_path = UPLOAD_DIR / response.json()["session_id"] / "test.txt"
 
     # Assert that the file exists in the expected location
     assert uploaded_file_path.exists(), f"File was not uploaded at {uploaded_file_path}"

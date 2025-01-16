@@ -34,7 +34,7 @@ async def upload_folder(new_folder: Path, session_id: str, files: List[UploadFil
                 content = await file.read()
                 f.write(content)
 
-        return {"filenames": uploaded_files, "message": "Folder uploaded successfully.", "fid": fid}
+        return {"filenames": uploaded_files, "message": "Folder uploaded successfully.", "session_id": session_id}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload folder: {e}")
