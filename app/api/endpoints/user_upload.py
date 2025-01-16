@@ -34,6 +34,10 @@ async def user_upload(files: List[UploadFile] = File(None, description="Files to
     new_folder = UPLOAD_DIR / unique_fid
     new_folder.mkdir(parents=True, exist_ok=True)
     
+    '''
+    
+        Need to check if returns an error if it does delete the new_folder of which would be empty
+    '''
     # Switch to determine which type of upload
     match len(files), files[0].filename.endswith(".zip") if files else False:
         

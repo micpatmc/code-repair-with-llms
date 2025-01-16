@@ -26,7 +26,7 @@ def test_no_files_uploaded():
     """
     
     response = client.post(API, files=[])
-    print(response)
+
     assert response.status_code == 400
     assert response.json()["detail"] == "No files uploaded."
 
@@ -43,7 +43,6 @@ def test_single_file_upload():
         files={"files": ("test.txt", content, "text/plain")},
     )
 
-    print(response)
     assert response.status_code == 200
     assert response.json()["message"] == "File uploaded successfully"
     
@@ -59,4 +58,16 @@ def test_multiple_files_uploaded():
         Test uploading multiple files not including any zips
     '''
 
+    files = [
+        ("files", (f"test_file_{i}.txt", f"Test file {i} content", "text/plain"))
+        for i in range(100)
+    ]
+
+    response = client.post(
+        API,
+        files=files,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Folder uploaded successfully."
     
