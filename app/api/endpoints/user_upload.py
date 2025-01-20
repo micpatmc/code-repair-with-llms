@@ -30,6 +30,7 @@ async def user_upload(files: List[UploadFile] = File(None, description="Files to
     if not files:
         raise HTTPException(status_code=400, detail="No files uploaded.")
     
+    # Creates session_id & dir in ./uploads
     unique_session_id = str(uuid.uuid4())
     new_folder = UPLOAD_DIR / unique_session_id
     new_folder.mkdir(parents=True, exist_ok=True)
