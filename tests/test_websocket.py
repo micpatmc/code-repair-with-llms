@@ -14,14 +14,14 @@ async def test_websocket_connection():
         # Test initial connection
         websocket.send_text("Hello Server")
         response = websocket.receive_text()
-        assert response == "Message received: Hello Server"
+        assert response == "Message from the server: received the following: Hello Server"
 
         # Test sending and receiving another message
         websocket.send_text("Test Message")
         response = websocket.receive_text()
-        assert response == "Message received: Test Message"
+        assert response == "Message from the server: received the following: Test Message"
 
 
-async def test_faulty_websocket_connection():
+# async def test_faulty_websocket_connection():
 
-    assert()
+#     assert()

@@ -1,6 +1,6 @@
 from fastapi import WebSocket, WebSocketDisconnect
 
-class SocketConnectionManager:
+class WebSocketConnectionManager:
     '''
         Manages the websocket connections that there are
     '''
