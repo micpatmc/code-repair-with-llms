@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+from main import app
 
 # Create the TestClient instance once for all tests
 client = TestClient(app)
@@ -11,6 +11,13 @@ async def test_websocket_connection():
     """Test a WebSocket connection and message exchange."""
     # Use the context manager for WebSocketTestSession
     with client.websocket_connect("/start-llm-session?websocket=true") as websocket:
+       
+        session_response = websocket.receive_json()
+        assert "session" in session_response
+
+        session_id = session_response["session_id"]
+        assert isinstance(session_id, str) and len(session_id) > 0
+
         # Test initial connection
         websocket.send_text("Hello Server")
         response = websocket.receive_text()

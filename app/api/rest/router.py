@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.endpoints import user_upload
+from app.api.rest.endpoints import user_upload
 
 '''
     Router for defined API endpoints

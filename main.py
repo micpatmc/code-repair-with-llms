@@ -1,7 +1,9 @@
 from fastapi import FastAPI, WebSocket
 from app.api.websocket_handler import WebSocketHandler
 from app.api.rest.router import api_router
+from app.api.session_manager import SessionManager
 from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
 
 app = FastAPI(
     title="Code Repair With LLM's",
@@ -17,9 +19,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+UPLOAD_DIR = Path("./uploads")
+session_manager = SessionManager(UPLOAD_DIR)
+
 
 # Manage websocket connections
-websocket_manager = WebSocketHandler()
+websocket_manager = WebSocketHandler(session_manager)
 
 # Websocket for continued connection to backend
 @app.websocket("/start-llm-session")

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Query
 from typing import List, Optional
-from app.api.utils.zip_handler import upload_zip
-from app.api.utils.file_handler import upload_file
-from app.api.utils.folder_handler import upload_folder
+from app.api.rest.utils.zip_handler import upload_zip
+from app.api.rest.utils.file_handler import upload_file
+from app.api.rest.utils.folder_handler import upload_folder
 from pathlib import Path
 import uuid
 
