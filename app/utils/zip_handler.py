@@ -3,7 +3,7 @@ import zipfile
 from fastapi import File, UploadFile, HTTPException, Depends
 from pathlib import Path
 
-async def upload_zip(new_folder: Path, session_id: str, file: UploadFile = File(...)):
+async def upload_zip(new_folder: Path, file: UploadFile = File(...)):
     '''
     Handles the upload of a Zip file
     Unzips and stores all the files to the given Path of the new folder
@@ -39,5 +39,5 @@ async def upload_zip(new_folder: Path, session_id: str, file: UploadFile = File(
     
     os.remove(zip_path)
 
-    return {"extracted_files": extracted_files, "message": "Zip File uploaded and extracted successfully", "session_id": session_id}
+    return {"extracted_files": extracted_files, "message": "Zip File uploaded and extracted successfully"}
     

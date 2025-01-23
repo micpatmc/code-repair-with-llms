@@ -2,7 +2,7 @@ from fastapi import APIRouter, File, UploadFile, HTTPException
 from pathlib import Path
 from typing import List
 
-async def upload_folder(new_folder: Path, session_id: str, files: List[UploadFile] = File(...)):
+async def upload_folder(new_folder: Path, files: List[UploadFile] = File(...)):
     '''
     Handles the upload of multiple or a folder of files
     Saves file to the given Path of the new folder
@@ -34,7 +34,7 @@ async def upload_folder(new_folder: Path, session_id: str, files: List[UploadFil
                 content = await file.read()
                 f.write(content)
 
-        return {"filenames": uploaded_files, "message": "Folder uploaded successfully.", "session_id": session_id}
+        return {"filenames": uploaded_files, "message": "Folder uploaded successfully."}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload folder: {e}")

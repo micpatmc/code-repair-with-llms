@@ -1,9 +1,9 @@
 from fastapi import WebSocket, WebSocketDisconnect
-from app.api.rest.utils.zip_handler import upload_zip
-from app.api.rest.utils.file_handler import upload_file
-from app.api.rest.utils.folder_handler import upload_folder
-from app.api.websocket_connection_manager import WebSocketConnectionManager
-from app.api.session_manager import SessionManager
+from app.utils.zip_handler import upload_zip
+from app.utils.file_handler import upload_file
+from app.utils.folder_handler import upload_folder
+from app.api.websocket.websocket_connection_manager import WebSocketConnectionManager
+from app.core.session_manager import SessionManager
 
 class WebSocketHandler:
     '''
@@ -20,16 +20,16 @@ class WebSocketHandler:
 
         # without relying on query_params directly
         await websocket.accept()
-
-        session_id = self.session_manager.create_session()
-        await websocket.send_text(session_id)
-
-        await self.connection_manager.connect(websocket, session_id)
+        session_id = None
 
         try:
-
+        
             # While connected to 
             while self.CONNECTED:
+
+                session_id = websocket.query_params.get("session_id")
+                self.check_session_id(self, websocket, session_id)
+
                 data = await websocket.receive_text()
 
                 print(f"Received message from Client: {data}:")
@@ -39,3 +39,14 @@ class WebSocketHandler:
         except WebSocketDisconnect:
             self.connection_manager.disconnect(websocket)
             print("Client disconnected")
+
+
+    async def check_session_id(self, websocket: WebSocket, session_id: str) -> bool:
+          
+            if not session_id:
+                await websocket.close(code=4001, reason="Session ID is missing")
+                return
+            
+            if not self.session_manager.validate_session(session_id):
+                await websocket.close(code=4002, reason="Invalid or expired session ID")
+                return
