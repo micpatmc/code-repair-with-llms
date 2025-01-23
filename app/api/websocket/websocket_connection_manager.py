@@ -2,7 +2,8 @@ from fastapi import WebSocket, WebSocketDisconnect
 
 class WebSocketConnectionManager:
     '''
-        Manages the websocket connections that there are
+        Manages websockets that are connected
+        to the backend server
     '''
 
     def __init__(self):
@@ -13,7 +14,7 @@ class WebSocketConnectionManager:
         print(f"Connection established for session: {session_id}")
 
     def disconnect(self, websocket: WebSocket):
-        session_id = next((sid for sid, ws in self.active_connections.items() if ws == WebSocket), None)
+        session_id = next((sid for sid, ws in self.active_connections.items() if ws == websocket), None)
         if session_id:
             del self.active_connections[session_id]
             print(f"Connection removed for session: {session_id}")

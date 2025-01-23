@@ -39,5 +39,5 @@ async def upload_zip(new_folder: Path, file: UploadFile = File(...)):
     
     os.remove(zip_path)
 
-    return {"extracted_files": extracted_files, "message": "Zip File uploaded and extracted successfully"}
+    return {"filenames": extracted_files, "message": "Zip File uploaded and extracted successfully"}
     

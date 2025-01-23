@@ -28,7 +28,7 @@ class WebSocketHandler:
             while self.CONNECTED:
 
                 session_id = websocket.query_params.get("session_id")
-                self.check_session_id(self, websocket, session_id)
+                self.check_session_id(websocket, session_id)
 
                 data = await websocket.receive_text()
 
