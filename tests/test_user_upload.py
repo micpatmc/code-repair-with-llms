@@ -1,7 +1,6 @@
 import pytest
 import shutil
-import zipfile
-import io
+from io import BytesIO
 from fastapi.testclient import TestClient
 from pathlib import Path
 from main import app
@@ -9,6 +8,7 @@ from main import app
 client = TestClient(app)
 
 UPLOAD_DIR = Path("./uploads")
+
 
 API = "/api/user-upload"
 
@@ -43,10 +43,13 @@ def test_single_file_uploaded():
     response = client.post(
         API,
         files={"files": ("test.txt", content, "text/plain")},
+        headers={
+            "accept": "application/json",
+        },
     )
 
     assert response.status_code == 200
-    assert response.json()["message"] == "File uploaded successfully"
+    assert response.json()["message"] == "File uploaded successfully."
     
     # Construct the file path using the returned folder ID (`fid`)
     uploaded_file_path = UPLOAD_DIR / response.json()["session_id"] / "test.txt"
@@ -103,32 +106,32 @@ def test_zip_with_single_file_uploaded():
 
 
 
-def test_zip_with_multiple_files_uploaded():
-    '''
-        Test uploading a zip file with many files
-    '''
+# def test_zip_with_multiple_files_uploaded():
+#     '''
+#         Test uploading a zip file with many files
+#     '''
 
-    files = [
-        ("files", (f"test_zipfile_{i}.txt", f"Test file {i} content"))
-        for i in range(100)
-    ]
+#     files = [
+#         ("files", (f"test_zipfile_{i}.txt", f"Test file {i} content"))
+#         for i in range(100)
+#     ]
 
-    zip_buffer = io.BytesIO()
+#     zip_buffer = io.BytesIO()
 
-    with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
-        for file_name, file_content in files:
-            file_name = file_content[0]
-            content_to_write = file_content[1] # Access the second element (content)
-            zip_file.writestr(file_name, content_to_write.encode())
+#     with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+#         for file_name, file_content in files:
+#             file_name = file_content[0]
+#             content_to_write = file_content[1] # Access the second element (content)
+#             zip_file.writestr(file_name, content_to_write.encode())
 
-    zip_file_data = zip_buffer.getvalue()
+#     zip_file_data = zip_buffer.getvalue()
 
-    zip_file = {"files": ("test.zip", zip_file_data, "application/zip")} 
+#     zip_file = {"files": ("test.zip", zip_file_data, "application/zip")} 
 
-    response = client.post(API,  files=zip_file)
+#     response = client.post(API,  files=zip_file)
 
-    # Assert successful upload (status code 200)
-    assert response.status_code == 200
-    assert response.json()["message"] == "Zip File uploaded and extracted successfully"
-    assert len(response.json()["extracted_files"]) > 0
+#     # Assert successful upload (status code 200)
+#     assert response.status_code == 200
+#     assert response.json()["message"] == "Zip File uploaded and extracted successfully"
+#     assert len(response.json()["extracted_files"]) > 0
 

@@ -24,19 +24,25 @@ def user_upload(session_manager: SessionManager) -> APIRouter:
         - Message: Success of upload
         - fid: unique id of file directory within the backend server
         '''
+        print("Files", files)
+        print("Headers:", files[0].headers if files else "No headers")
         if not files:
             raise HTTPException(status_code=400, detail="No files uploaded.")
         
         token = session_manager.create_session()
+        print(f"TOKEN IS: {token}")
         session_id = session_manager.validate_session(token)
         
         print(f"Session ID is : {session_id}")
         result = await file_manager.process_files(session_id, files)
 
         return {
-            "message": "Files uploaded Successfully.",
-            "session_id": session_id,
-            "files": result,
+            "message": result["message"],
+            "session_token": token,
+            "files": result["filenames"],
+
+            ### ONLY FOR TESTING
+            "session_id": session_id
         }
 
     return api_router

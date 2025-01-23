@@ -1,5 +1,5 @@
 from jose import jwt, JWTError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from fastapi import HTTPException
 from typing import Optional
@@ -24,11 +24,13 @@ class SessionManager:
 
     def create_session(self) -> str:
 
-        expiration = datetime.now() + timedelta(minutes=self.token_expiration_minutes)
+        now = datetime.now(tz=timezone.utc)
+
+        expiration = now + timedelta(minutes=self.token_expiration_minutes)
 
         payload = {
             "exp": expiration,
-            "iat": datetime.now(),
+            "iat": now,
             "sub": str(os.urandom(16).hex()),
         }
 
@@ -44,17 +46,21 @@ class SessionManager:
     def validate_session(self, token: str) -> str:
 
         try:
+            print(f"TOKEN AGAIN {token}")
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            print(f"PAYLOAD {payload}")
             session_id = payload.get("sub")
-
+            print("AFTER PAYLOAD SUB")
             if not session_id:
                 raise HTTPException(status_code=400, detail="Invalid token payload")
 
+            print("IT GOT HERE")
             self.get_session_path(session_id)
 
             return session_id
         
         except JWTError:
+            print("THIS IS WHERE ERROR IS")
             raise HTTPException(status_code=401, detail="Invalid or expired token")
         
     

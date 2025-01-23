@@ -23,7 +23,7 @@ async def upload_file(new_folder: Path, file: UploadFile = File(...)):
             content = await file.read()
             f.write(content)
         
-        return {"filename": file.filename, "message": "File uploaded successfully"}
+        return {"filenames": file.filename, "message": "File uploaded successfully."}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {e}")
