@@ -52,7 +52,6 @@ async def test_websocket_connection():
         response = websocket.receive_text()
         assert response == "Message from the server: received the following: Test Message"
 
-        websocket.close()
 
 
 # async def test_faulty_websocket_connection():

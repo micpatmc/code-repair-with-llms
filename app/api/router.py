@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.rest.user_upload import user_upload
+from app.api.rest.initiate_pipeline import initiate_pipeline
 from app.core.session_manager import SessionManager
 
 '''
@@ -7,6 +7,6 @@ from app.core.session_manager import SessionManager
 '''
 def api_router(session_manager: SessionManager) -> APIRouter:
     api_router = APIRouter()
-    api_router.include_router(user_upload(session_manager), prefix="/api", tags=["Files"])
+    api_router.include_router(initiate_pipeline(session_manager), prefix="/api", tags=["Files"])
 
     return api_router

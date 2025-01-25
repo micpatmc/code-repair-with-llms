@@ -10,8 +10,11 @@ client = TestClient(app)
 
 UPLOAD_DIR = Path("./uploads")
 
+# Binary representation of steps: 1, 3, 5
+pipeline_steps = 21
 
-API = "/api/user-upload"
+
+API = f"/api/initiate_pipeline?pipeline_steps={pipeline_steps}"
 
 @pytest.fixture(scope="function", autouse=True)
 def clean_upload_dir():
@@ -48,6 +51,8 @@ def test_single_file_uploaded():
             "accept": "application/json",
         },
     )
+
+    print(f"Response to single file upload test: {response}")
 
     assert response.status_code == 200
     assert response.json()["message"] == "File uploaded successfully."

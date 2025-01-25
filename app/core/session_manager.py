@@ -2,7 +2,7 @@ from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from fastapi import HTTPException
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel
 import os
 
@@ -19,7 +19,7 @@ class SessionManager:
 
         self.upload_dir.mkdir(parents=True, exist_ok=True)
 
-    def create_session(self) -> str:
+    def create_session(self, selected_steps: List[int]) -> str:
 
         now = datetime.now(tz=timezone.utc)
 
@@ -29,6 +29,7 @@ class SessionManager:
             "exp": expiration,
             "iat": now,
             "sub": str(os.urandom(16).hex()),
+            "selected_steps": selected_steps,
         }
 
         token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
@@ -36,32 +37,32 @@ class SessionManager:
         session_path: Path = (self.upload_dir / payload["sub"])
         session_path.mkdir(parents=True, exist_ok=True)
 
-        print(f"Session Path created is: {session_path}")
-
         return token
     
     def validate_session(self, token: str) -> str:
 
         try:
-            print(f"TOKEN AGAIN {token}")
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
-            print(f"PAYLOAD {payload}")
             session_id = payload.get("sub")
-            print("AFTER PAYLOAD SUB")
+
             if not session_id:
                 raise HTTPException(status_code=400, detail="Invalid token payload")
 
-            print("IT GOT HERE")
             self.get_session_path(session_id)
 
             return session_id
         
         except JWTError:
-            print("THIS IS WHERE ERROR IS")
             raise HTTPException(status_code=401, detail="Invalid or expired token")
         
     
-    def get_session_path(self, session_id: str) -> Path:
+    def get_session_path(self, session_id: Optional[str] = None, token: Optional[str] = None) -> Path:
+
+        if token and not session_id:
+            session_id = self.validate_session(token)
+        
+        if not session_id:
+            raise HTTPException(status_code=400, detail="Session ID or token is required")
 
         session_path = self.upload_dir / session_id
         if not session_path.exists():
@@ -69,6 +70,25 @@ class SessionManager:
 
         print(f"Session Path is: {session_path}")
         return session_path
+    
+    
+    def get_selected_steps(self, token: str) -> List[int]:
+
+        if not token:
+            raise HTTPException(status_code=400, detail="Token is required")
+        
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            steps = payload.get("selected_steps")
+
+            if not steps:
+                raise HTTPException(status_code=400, detail="Invalid token payload")
+
+            return steps
+        
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
     
     def delete_session(self, session_id: str) -> None:
 
