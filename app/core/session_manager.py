@@ -6,9 +6,6 @@ from typing import Optional
 from pydantic import BaseModel
 import os
 
-JWT_SECRET= "ASODIHASD:AOIDH:AO()"
-JWT_ALGORITHM = "HS256"
-
 class SessionManager:
     """
     Manages user sessions

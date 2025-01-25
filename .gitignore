@@ -68,3 +68,6 @@ media/
 *.db
 *.db-journal
 */__pycache__/
+app/__pycache__/__init__.cpython-312.pyc
+app/api/__pycache__/__init__.cpython-312.pyc
+app/api/__pycache__/router.cpython-312.pyc
