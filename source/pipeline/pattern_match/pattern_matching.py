@@ -18,6 +18,8 @@ class PatternMatch():
         // Provide the detailed code implementation here
         ```
 
+        Make sure to keep the code changes format consistent, there should always be an opening ``` and closing ```.
+
         Fault ID: {fault_index}
         Fault Plan Details: {self.fault_plan}
         """
@@ -27,11 +29,11 @@ class PatternMatch():
 
     def return_code_block(self, text: str) -> str:
         # regex pattern to match text between triple backticks
-        pattern = r"```(.*?)\r([\s\S]*?)\n```"
+        pattern = r"```(?:[a-zA-Z]*)?\r?\n([\s\S]*?)```"
 
         # find first match and return only the code content (group 2)
         match = re.search(pattern, text)
-        return match.group(2) if match else ""
+        return match.group(1) if match else ""
 
     # based on prompt and number of faults, execute for each fault
     def execute_pattern_matching(self):

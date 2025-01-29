@@ -4,6 +4,7 @@ import os
 
 from fault_loc.fault_localization import FaultLocalization
 from pattern_match.pattern_matching import PatternMatch
+from patch_valid.patch_validation import PatchValidation
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 from source.model.model import Model
@@ -54,7 +55,8 @@ class Pipeline():
 
     # last stage determines if the fixes are corrected
     def patch_validation(self):
-        pass
+        validator = PatchValidation()
+        return validator.validate_patches()
 
 def create_code_dict(file_path):
     # Initialize the list to store dictionaries for each entry
@@ -137,6 +139,12 @@ def main():
 
     # patch validation
     # test the candidates and use the optimal one (passes the test suite)
+    write_to_file("\n#### Patch Validation ####\n")
+    best_patch = pipeline.patch_validation()
+    if best_patch:
+        write_to_file(f"Best patch selected: {best_patch}")
+    else:
+        write_to_file("No valid patch found.")
 
     # write new file
     # write the candidate to the file and return the file to download
