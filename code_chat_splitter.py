@@ -8,28 +8,60 @@ import pandas as pd
 import asyncio
 import aiohttp
 import chardet
+
 from bs4 import BeautifulSoup
 
-from cve_scraper import fetch_page
 
-with open('repo_data.csv', 'rb') as file:
-    raw_data = file.read()
-    result = chardet.detect(raw_data)
-    encoding = result['encoding']
+async def fetch_page(session, url):
+    try:
+        async with session.get(url) as response:
+            if response.status == 200 and "text/html" in response.headers.get("Content-Type", ""):
+                return await response.text()
+    except Exception as e:
+        print(f"Error fetching {url}: {e}")
+    return None
 
-df = pd.read_csv('repo_data.csv', encoding=encoding)
+async def getIssueData(session, baseLink):
+    html = await fetch_page(session, baseLink)
+    if not html:
+        return
+    
+    codeData = []
+    chatData = []
 
-descToLink = {}
-codeRepos = []
-chatRepos = []
+    soup = BeautifulSoup(html, 'html.parser')
+    #https://github.com/phpmyadmin/phpmyadmin/issues?q=is%3Aissue%20state%3Aclosed
 
+    return codeData, chatData
 
-for row in df.iterrows():
-    desc = row[1].iloc[0]
-    link = row[1].iloc[1]
+async def main():
+    with open('repo_data.csv', 'rb') as file:
+        raw_data = file.read()
+        result = chardet.detect(raw_data)
+        encoding = result['encoding']
 
-    baseLink = str(string for string in link.split('/'))
+    df = pd.read_csv('repo_data.csv', encoding=encoding)
 
-    print(baseLink)
-    break
+    descToLink = {}
+    codeData = []
+    chatData = []
+
+    async with aiohttp.ClientSession() as session:
+        for row in df.iterrows():
+            desc = row[1].iloc[0]
+            link = row[1].iloc[1]
+
+            baseLink = []
+            listedLink = link.split('/')
+
+            for string in range(0, 5):
+                baseLink.append(listedLink[string])
+
+            baseLink.append('issues?q=is%3Aissue state%3Aclosed')
+            baseLink = '/'.join(baseLink)
+            print(baseLink)
+            break
+
+            codeData, chatData = getIssueData(session, baseLink)
+            break
 

@@ -94,10 +94,8 @@ async def main():
                 print("completed")
 
 asyncio.run(main())
+
 # all_links now populated with... all the links
-
-
-
 with open("repo_data.csv", "w") as csv_file:
         writer = csv.writer(csv_file, delimiter=',')
         writer.writerow(['Description', 'Links'])
