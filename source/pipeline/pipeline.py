@@ -5,6 +5,7 @@ import os
 from rag.rag_db import RAG
 from fault_loc.fault_localization import FaultLocalization
 from pattern_match.pattern_matching import PatternMatch
+from patch_valid.patch_validation import PatchValidation
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 from source.model.model import Model
@@ -44,12 +45,23 @@ class Pipeline():
         return pm.get_matches()
 
     # third stage creates the patches and places them in the code
-    def patch_generation(self):
-        pass
+    def patch_generation(self, patterns, output_dir="patch_candidates"):
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        for i, pattern in enumerate(patterns):
+            if pattern.strip():  # Ensure the pattern is not empty
+                file_name = f"{output_dir}/patch_candidate_{i+1}.java"
+                with open(file_name, "w") as file:
+                    file.write(pattern)
+            else:
+                print(f"Skipping empty pattern at index {i}")
+        return output_dir
 
     # last stage determines if the fixes are corrected
     def patch_validation(self):
-        pass
+        validator = PatchValidation()
+        return validator.validate_patches()
 
 def create_code_dict(file_path):
     # Initialize the list to store dictionaries for each entry
@@ -106,7 +118,11 @@ def main():
     pipeline = Pipeline()
     
     # process file input
+<<<<<<< HEAD
     #code_dict = create_code_dict('C:\\Users\\Gavin Cruz\\Documents\\SD1\\finalspace\\code-repair-with-llms\\source\\pipeline\\00_initial_java.json')
+=======
+    code_dict = create_code_dict('source/pipeline/00_initial_java.json')
+>>>>>>> 92691877c281b3b105ba1ad18ff23534b1767671
 
     # set the model to whatever the selection is
     pipeline.set_model("meta-llama/Meta-Llama-3-8B-Instruct")
@@ -140,9 +156,18 @@ def main():
 
     # patch generation
     # take the code snippets and create multiple files with potential fixes (patch candidates)
+    write_to_file("\n#### Patch Generation ####\n")
+    patch_dir = pipeline.patch_generation(patterns)
+    write_to_file(f"Patch candidates written to directory: {patch_dir}")
 
     # patch validation
     # test the candidates and use the optimal one (passes the test suite)
+    write_to_file("\n#### Patch Validation ####\n")
+    best_patch = pipeline.patch_validation()
+    if best_patch:
+        write_to_file(f"Best patch selected: {best_patch}")
+    else:
+        write_to_file("No valid patch found.")
 
     # write new file
     # write the candidate to the file and return the file to download
