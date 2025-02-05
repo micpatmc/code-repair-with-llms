@@ -2,6 +2,7 @@ import json
 import sys
 import os
 
+from rag.rag_db import RAG
 from fault_loc.fault_localization import FaultLocalization
 from pattern_match.pattern_matching import PatternMatch
 
@@ -14,10 +15,14 @@ this pipeline will be the main process for the pipeline that is being integrated
 class Pipeline():
     def __init__(self):
         self.model = None
+        self.rag = None
         self.stage1 = False
         self.stage2 = False
         self.stage3 = False
         self.stage4 = False
+
+    def set_rag(self):
+        self.rag = RAG()
 
     # define the model being used throughout the pipeline
     def set_model(self, model_selection: str):
@@ -28,7 +33,7 @@ class Pipeline():
 
     # first stage which determines where the fault/vulnerability is
     def fault_localization(self, precode_content):
-        fl = FaultLocalization(self.model, precode_content)
+        fl = FaultLocalization(self.model, self.rag, precode_content)
         fl.calculate_fault_localization()
         return fl.get_fault_localization()
 
@@ -101,15 +106,29 @@ def main():
     pipeline = Pipeline()
     
     # process file input
-    code_dict = create_code_dict('testSD1/source/pipeline/00_initial_java.json')
+    #code_dict = create_code_dict('C:\\Users\\Gavin Cruz\\Documents\\SD1\\finalspace\\code-repair-with-llms\\source\\pipeline\\00_initial_java.json')
 
     # set the model to whatever the selection is
     pipeline.set_model("meta-llama/Meta-Llama-3-8B-Instruct")
 
+    file_path = "C:\\Users\\Gavin Cruz\\Documents\\SD1\\finalspace\\code-repair-with-llms\\ObjectArrayCodec.java"
+    with open(file_path, 'r') as file:
+        code_content = file.read()
+
+    pipeline.set_rag()
+    code_files = [{
+        "filename": "ObjectArrayCodec.java",
+        "content": code_content
+    }]
+    pipeline.rag.embed_code(code_files)
+
+    context = pipeline.rag.retrieve_context("what is the purpose of this code?")
+    print(context)
+
     # fault localization
     # localize and plan the faults in the source code
     write_to_file("#### Fault Localization ####\n")
-    localization = pipeline.fault_localization(code_dict[0]['precode'])
+    localization = pipeline.fault_localization(code_content)
     write_to_file(localization)
 
     # pattern matching

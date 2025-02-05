@@ -9,6 +9,12 @@ import faiss
 import numpy as np
 import os
 from sentence_transformers import SentenceTransformer
+from langchain_text_splitters import (
+    Language,
+    RecursiveCharacterTextSplitter,
+)
+from enum import Enum
+from typing import List, Optional
 
 class RAG:
     def __init__(self, model_name='all-MiniLM-L6-v2', index_path='code_index.faiss'):
@@ -28,28 +34,47 @@ class RAG:
                 print(f"Warning: Could not load index from {self.index_path}. Creating new index.")
                 self.index = None
 
-    def embed_code(self, code_files):
+    # extract content from each file just for one file
+    def extract_content(self, file_path) -> dict:
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                filename = os.path.basename(file_path)
+                content = f.read()
+            return {
+                "filename": filename,
+                "content": content
+            }
+        except Exception as e:
+            print(f"Warning: Could not process file {file_path}: {str(e)}")
+            return {"filename": "", "content": ""}
+
+    # embed code into faiss file
+    def embed_code(self, code_files: list[dict]):
         code_chunks = []
         metadata = []
 
-        # read and split the code files into chunks
-        for file_path in code_files:
+        # Process each dictionary of code content
+        for file_dict in code_files:
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    # split into meaningful chunks
-                    chunks = self._split_into_chunks(content)
-                    code_chunks.extend(chunks)
-                    # store file path and chunk position for each chunk
-                    for i, chunk in enumerate(chunks):
-                        metadata.append({
-                            'file_path': file_path,
-                            'chunk_number': i,
-                            'start_line': i * 10,
-                            'file_name': os.path.basename(file_path)
-                        })
+                content = file_dict['content']
+                filename = file_dict['filename']
+
+                # get the language of the file
+                language = os.path.splitext(filename)[1][1:].upper() if os.path.splitext(filename)[1] else "TXT"
+                
+                # split into meaningful chunks
+                chunks = self._split_into_chunks(content, language)
+                code_chunks.extend(chunks)
+                
+                # store metadata for each chunk
+                for i, chunk in enumerate(chunks):
+                    metadata.append({
+                        'file_name': filename,
+                        'chunk_number': i,
+                        'start_line': i * 10,
+                    })
             except Exception as e:
-                print(f"Warning: Could not process file {file_path}: {str(e)}")
+                print(f"Warning: Could not process file {filename}: {str(e)}")
                 continue
 
         if not code_chunks:
@@ -69,27 +94,53 @@ class RAG:
         # save index
         faiss.write_index(self.index, self.index_path)
 
-    # split code content into meaningful chunks
-    def _split_into_chunks(self, content, chunk_size=10):
-        lines = content.split('\n')
+    def _split_into_chunks(self, content: str, lang: str, chunk_size: int = 500, overlap: int = 50) -> List[str]:
+        
+        # error catching
+        if not content:
+            raise ValueError("Content cannot be empty")
+        if not isinstance(content, str):
+            raise TypeError("Content must be a string")
+        if not isinstance(chunk_size, int) or chunk_size <= 0:
+            raise ValueError("chunk_size must be a positive integer")
+        if not isinstance(overlap, int) or overlap < 0:
+            raise ValueError("overlap must be a non-negative integer")
+        if overlap >= chunk_size:
+            raise ValueError("overlap must be less than chunk_size")
+        
         chunks = []
-        current_chunk = []
         
-        for line in lines:
-            current_chunk.append(line)
+        try:
+            # validate if language is supported
+            try:
+                language_enum = Language[lang]
+            except KeyError:
+                # fallback to generic text splitting if language not supported
+                print(f"Warning: Language '{lang}' not supported. Falling back to generic text splitting.")
+                language_enum = None
+
+            # create the splitter with language-specific settings
+            splitter = RecursiveCharacterTextSplitter.from_language(
+                language=language_enum if language_enum else Language.PYTHON,
+                chunk_size=chunk_size,
+                chunk_overlap=overlap
+            ) if language_enum else RecursiveCharacterTextSplitter(
+                chunk_size=chunk_size,
+                chunk_overlap=overlap,
+                length_function=len,
+                is_separator_regex=False
+            )
             
-            # create a new chunk when we hit the chunk size or find a natural break
-            if (len(current_chunk) >= chunk_size and 
-                (line.strip() == '' or line.strip().startswith('def ') or 
-                 line.strip().startswith('class '))):
-                chunks.append('\n'.join(current_chunk))
-                current_chunk = []
-        
-        # add any remaining lines as the last chunk
-        if current_chunk:
-            chunks.append('\n'.join(current_chunk))
-            
-        return chunks
+            # split the content into chunks
+            code_docs = splitter.create_documents([content])
+            chunks = [doc.page_content for doc in code_docs]
+            if not chunks:
+                raise ValueError("Failed to generate chunks from the content")
+            return chunks
+
+        except Exception as e:
+            raise RuntimeError(f"Error splitting content into chunks: {str(e)}")
+
 
     # retrieves relevant code chunks based on query
     def retrieve_context(self, query, k=5):
@@ -120,3 +171,25 @@ class RAG:
         self.code_chunks = []
         self.metadata = []
         faiss.write_index(self.index, self.index_path)
+
+    def format_prompt(self, query, context):
+        # Include only the top 3 most relevant context sections based on similarity score
+        sorted_context = sorted(context, key=lambda x: x['similarity_score'], reverse=True)[:3]
+        
+        # Build the context string with only essential details
+        context_str = ""
+        for i, result in enumerate(sorted_context, 1):
+            context_str += f"\nSection {i}:\n"
+            context_str += f"Code:\n{result['code']}\n"  # Exclude metadata and similarity score
+            context_str += "-" * 40 + "\n"
+
+        # Concise prompt with minimal instructions
+        prompt = f"""Provide only the shortest and most direct answer to the question. Do not elaborate or provide additional information.
+        
+        Context:{context_str}
+
+        Question: {query}
+
+        Answer:"""
+
+        return prompt
