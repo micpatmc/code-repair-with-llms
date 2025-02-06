@@ -121,7 +121,7 @@ class RAG:
 
             # create the splitter with language-specific settings
             splitter = RecursiveCharacterTextSplitter.from_language(
-                language=language_enum if language_enum else Language.PYTHON,
+                language=language_enum,
                 chunk_size=chunk_size,
                 chunk_overlap=overlap
             ) if language_enum else RecursiveCharacterTextSplitter(

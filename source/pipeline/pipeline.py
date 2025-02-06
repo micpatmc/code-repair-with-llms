@@ -34,9 +34,9 @@ class Pipeline():
 
     # first stage which determines where the fault/vulnerability is
     def fault_localization(self, precode_content):
-        fl = FaultLocalization(self.model, self.rag, precode_content)
+        fl = FaultLocalization(self.model, precode_content)
         fl.calculate_fault_localization()
-        return fl.get_fault_localization()
+        return fl.fault_localization
 
     # second stage determines the type of fault/vulnerability
     def pattern_matching(self, localization: str):
@@ -118,11 +118,7 @@ def main():
     pipeline = Pipeline()
     
     # process file input
-<<<<<<< HEAD
     #code_dict = create_code_dict('C:\\Users\\Gavin Cruz\\Documents\\SD1\\finalspace\\code-repair-with-llms\\source\\pipeline\\00_initial_java.json')
-=======
-    code_dict = create_code_dict('source/pipeline/00_initial_java.json')
->>>>>>> 92691877c281b3b105ba1ad18ff23534b1767671
 
     # set the model to whatever the selection is
     pipeline.set_model("meta-llama/Meta-Llama-3-8B-Instruct")
@@ -138,8 +134,8 @@ def main():
     }]
     pipeline.rag.embed_code(code_files)
 
-    context = pipeline.rag.retrieve_context("what is the purpose of this code?")
-    print(context)
+    #context = pipeline.rag.retrieve_context("what is the purpose of this code?")
+    #print(context)
 
     # fault localization
     # localize and plan the faults in the source code

@@ -1,20 +1,30 @@
-
+import re
+from typing import List, Tuple
+from transformers import AutoTokenizer
 from huggingface_hub import InferenceClient
 import os
 
-"""
-this stage will take the input from the user and pass it with the prompt to the LLM
-and then the llm will provide explicit information on where the faults are in the code
-and how to fix them
-"""
-class FaultLocalization():
-    def __init__(self, model, rag, data):
-        self.model = model # model object
-        self.rag = rag
-        self.data = data
-        self.fault_localization = None # output created by the llm
-
-    def get_prompt(self) -> str:
+class FaultLocalization:
+    def __init__(self, model, file_contents: str):
+        self.model = model  # Model object
+        self.file_contents = file_contents
+        self.max_tokens = self.model.max_context - 250  # Adjust max tokens per chunk
+        self.chunks = self._chunk_code()
+        self.fault_localization = None
+    
+    def _chunk_code(self) -> List[Tuple[int, str]]:
+        tokens = self.model.tokenizer.encode(self.file_contents, add_special_tokens=False)
+        chunk_size = self.max_tokens
+        chunks = []
+        
+        for i in range(0, len(tokens), chunk_size):
+            chunk_tokens = tokens[i:i + chunk_size]
+            chunk_text = self.model.tokenizer.decode(chunk_tokens, skip_special_tokens=True)
+            chunks.append((i // chunk_size, chunk_text))
+        
+        return chunks
+    
+    def get_prompt(self, code: str) -> str:
         return f"""
 Analyze the following code file to identify any vulnerabilities or faults. For each identified issue, provide 
 the analysis using the following structured format:
@@ -37,20 +47,49 @@ explicitly state that the code appears to be fault-free.
 ### Output Requirements:
 - Use bullet points and section headers for clarity.
 - Ensure all explanations are concise, actionable, and easy to understand.
+
+Here is the code: 
+{code}
         """
+    
+    def clean_response(self, response: str) -> str:
+        return f"""
+Refine the following fault analysis to adhere to the structured format:
 
-    def get_fault_localization(self)-> str:
-        return self.fault_localization
+### High-Level Overview:
+- Ensure the summary accurately reflects the file’s purpose and functionality.
 
-    def set_fault_localization(self, fault_localization):
-        self.fault_localization = fault_localization
+### Detected Faults:
+For each identified fault, follow this structure:
 
+#### Fault 1:
+- **Fault Detected**: Ensure the description is precise and clear.
+- **Cause**: Provide a detailed yet concise explanation of the root cause.
+- **Impact**: Clarify the potential risks or consequences of the issue.
+- **Solution**: Ensure the solution is actionable and easy to implement.
+
+Repeat for additional faults (Fault 2, Fault 3, etc.), maintaining clarity and consistency. If no faults are detected, 
+explicitly state that the code appears to be fault-free.
+
+### Output Requirements:
+- Improve readability and structure.
+- Enhance clarity and comprehensiveness.
+- Maintain consistency in formatting and terminology.
+
+Here is the analysis:
+{response}
+        """
+    
     def calculate_fault_localization(self):
-        # pass prompt to LLM with precode to find faults
-        prompt = self.get_prompt()
-        context = self.rag.retrieve_context(prompt)
-        formatted_prompt = self.rag.format_prompt(prompt, context)
-
-        response = self.model.generate_response(formatted_prompt)
-
-        self.set_fault_localization(response)
+        accumulated_responses = []
+        
+        for index, chunk in self.chunks:
+            response = self.model.generate_response(self.get_prompt(chunk))
+            accumulated_responses.append(response)
+        
+        full_analysis = "\n".join(accumulated_responses)
+        if len(accumulated_responses) > 1:
+            cleaned_analysis = self.model.generate_response(self.clean_response(full_analysis))
+            self.fault_localization = cleaned_analysis
+        else:
+            self.fault_localization = full_analysis
