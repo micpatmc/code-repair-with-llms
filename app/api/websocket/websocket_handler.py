@@ -19,7 +19,6 @@ class WebSocketHandler:
         self.CONNECTED = True
 
     """
-
     The BSON message from front end requires
 
      - action : either being READY_FOR_FILE || TEXT_MESSAGE
@@ -33,7 +32,6 @@ class WebSocketHandler:
         self.connection_manager.connect(websocket, session_id)
 
         try:
-        
             # While connected to 
             while self.CONNECTED:
 
@@ -52,6 +50,7 @@ class WebSocketHandler:
                         await self.send_bson(websocket, {"type": "message", "content": "No file available yet."})
             
                 elif message.get("action") == "TEXT_MESSAGE":
+                    
                     text_message = message.get("content", "")
                     await self.send_bson(websocket, {"type": "message", "content": f"Server received: {text_message}"})
 
@@ -77,7 +76,7 @@ class WebSocketHandler:
         '''
 
         if not os.path.exists(file_path):
-            await self.send_bson(websocket, {"type": "errpr", "content": "File not found"})
+            await self.send_bson(websocket, {"type": "error", "content": "File not found"})
             return
         
         try:
