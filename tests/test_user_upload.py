@@ -13,7 +13,6 @@ UPLOAD_DIR = Path("./uploads")
 # Binary representation of steps: 1, 3, 5
 pipeline_steps = 21
 
-
 API = f"/api/initiate_pipeline?pipeline_steps={pipeline_steps}"
 
 @pytest.fixture(scope="function", autouse=True)

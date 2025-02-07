@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Query
-from typing import List, Optional
+from typing import List
 from app.core.session_manager import SessionManager
 from app.core.file_handler import FileHandler
 from app.utils.decode_pipeline_steps import decode_pipeline_steps

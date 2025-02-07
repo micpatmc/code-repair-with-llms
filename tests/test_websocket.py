@@ -1,12 +1,15 @@
 import pytest
+import bson
 from fastapi.testclient import TestClient
 from main import app
 
 # Create the TestClient instance once for all tests
 client = TestClient(app)
 
-API = "/api/user-upload"
+# Binary representation of steps: 1, 3, 5
+pipeline_steps = 21
 
+API = f"/api/initiate_pipeline?pipeline_steps={pipeline_steps}"
 session_id: str = None
 
 def test_single_file_uploaded():
@@ -36,24 +39,41 @@ async def test_websocket_connection():
     """Test a WebSocket connection and message exchange."""
 
     global session_id
-
     assert session_id is not None
 
-    # Use the context manager for WebSocketTestSession
     with client.websocket_connect(f"/start-llm-session?websocket=true&session_id={session_id}") as websocket:       
         
         # Test initial connection
-        websocket.send_text("Hello Server")
-        response = websocket.receive_text()
-        assert response == "Message from the server: received the following: Hello Server"
+        message = bson.BSON.encode({"action": "TEXT_MESSAGE", "type": "message", "content": "Hello Server"})
+        websocket.send_bytes(message)
 
-        # Test sending and receiving another message
-        websocket.send_text("Test Message")
-        response = websocket.receive_text()
-        assert response == "Message from the server: received the following: Test Message"
+        response_data = websocket.receive_bytes()
+        response = bson.BSON(response_data).decode()
+
+        assert response["type"] == "message"
+        assert response["content"] == "Server received: Hello Server"
 
 
+@pytest.mark.asyncio
+async def test_websocket_file_transfer():
+    global session_id
+    assert session_id is not None
 
-# async def test_faulty_websocket_connection():
+    with client.websocket_connect(f"/start-llm-session?websocket=true&session_id={session_id}") as websocket: 
+        
+        request = bson.encode({"action": "READY_FOR_FILE"})
+        websocket.send_bytes(request)
 
-#     assert()
+        # Expect START_FILE_TRANSFER message
+        response_data = websocket.receive_bytes()
+        response = bson.decode(response_data)
+
+        assert response["type"] == "file"
+        assert "filename" in response
+        assert "data" in response
+
+        # Decode file data
+        file_content = bytes(response["data"])
+        
+        # Validate the received file (assuming it's a text file for now)
+        assert file_content.decode() == "Test file content"
