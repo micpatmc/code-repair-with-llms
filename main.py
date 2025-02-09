@@ -7,16 +7,19 @@ import re
 from tqdm import tqdm
 
 class CVEDatasetGenerator:
+
     
-    def __init__(self):
+    
+    def __init__(self, start_year=2015):
         self.languages = {
             'python': ['python'],
             'java': ['java'],
             'c_cpp': ['cpp', 'c'],
             # Add more languages and keywords here
         }
+        self.start_year = start_year
     
-    def fetch_cves(self, start_year=2010):
+    def fetch_cves(self, start_year=self.start_year):
         """Fetches CVEs from NVD for specified programming languages"""
         all_cves = []
         current_year = datetime.now().year
