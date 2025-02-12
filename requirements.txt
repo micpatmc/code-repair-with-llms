@@ -5,3 +5,5 @@ pytest
 httpx
 websockets
 python-jose
+aiofiles
+bson
