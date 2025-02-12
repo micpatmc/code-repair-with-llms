@@ -40,7 +40,7 @@ class Pipeline():
 
     # second stage determines the type of fault/vulnerability
     def pattern_matching(self, localization: str):
-        pm = PatternMatch(self.model, localization)
+        pm = PatternMatch(self.model, self.rag, localization)
         pm.execute_pattern_matching()
         return pm.get_matches()
 
@@ -149,6 +149,7 @@ def main():
     patterns = pipeline.pattern_matching(localization)
     for pattern in patterns:
         write_to_file(pattern)
+        write_to_file("\n+++++++++++++++++++\n")
 
     # patch generation
     # take the code snippets and create multiple files with potential fixes (patch candidates)
