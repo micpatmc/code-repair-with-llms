@@ -1,13 +1,17 @@
 import os
-import subprocess
+import difflib
 import shutil
 
 class PatchValidation:
-    def __init__(self, patch_dir="patch_candidates", test_file="TestSuite.java"):
+    def __init__(self, patch_dir="patch_candidates", reference_file="fixed_code.java"):
         self.patch_dir = patch_dir
-        self.test_file = test_file
+        self.reference_file = reference_file
 
     def validate_patches(self):
+        if not os.path.exists(self.reference_file):
+            print(f"Reference file '{self.reference_file}' does not exist.")
+            return None
+
         patch_files = [f for f in os.listdir(self.patch_dir) if f.endswith(".java")]
         if not patch_files:
             print("No patch candidates found.")
@@ -15,49 +19,32 @@ class PatchValidation:
 
         print(f"Found {len(patch_files)} patch candidates. Validating patches...")
 
+        with open(self.reference_file, "r") as ref_file:
+            reference_code = ref_file.read()
+
+        best_patch = None
+        best_similarity = 0.0
+
         for patch_file in patch_files:
             patch_path = os.path.join(self.patch_dir, patch_file)
 
-            # Create a temporary directory for testing
-            temp_dir = "temp_testing"
-            if os.path.exists(temp_dir):
-                shutil.rmtree(temp_dir)
-            os.makedirs(temp_dir)
+            with open(patch_path, "r") as patch:
+                patch_code = patch.read()
 
-            # Copy patch file and test suite to the temp directory
-            shutil.copy(patch_path, temp_dir)
-            shutil.copy(self.test_file, temp_dir)
+            # Compute similarity ratio
+            sm = difflib.SequenceMatcher(None, reference_code, patch_code)
+            similarity = sm.ratio()
 
-            # Compile the patch
-            compile_result = subprocess.run(
-                ["javac", "*.java"],
-                cwd=temp_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                shell=True
-            )
+            print(f"Patch {patch_file} similarity: {similarity:.4f}")
 
-            if compile_result.returncode != 0:
-                print(f"Compilation failed for {patch_file}:\n{compile_result.stderr}")
-                continue
+            if similarity > best_similarity:
+                best_similarity = similarity
+                best_patch = patch_file
 
-            # Run the test suite
-            test_result = subprocess.run(
-                ["java", "-cp", ".", "org.junit.runner.JUnitCore", "TestSuite"],
-                cwd=temp_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                shell=True
-            )
-
-            if "FAILURES!" not in test_result.stdout:
-                print(f"Patch {patch_file} passed all tests!")
-                shutil.copy(patch_path, "best_patch.java")
-                return patch_file
-
-            print(f"Patch {patch_file} failed tests.")
-
-        print("No valid patch found.")
-        return None
+        if best_patch:
+            print(f"Best patch is {best_patch} with similarity {best_similarity:.4f}")
+            shutil.copy(os.path.join(self.patch_dir, best_patch), "best_patch.java")
+            return best_patch
+        else:
+            print("No valid patch found.")
+            return None
