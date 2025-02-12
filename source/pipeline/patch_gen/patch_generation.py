@@ -26,12 +26,10 @@ class PatchGeneration:
 
         # Iterate through the patterns and create patch files
         for idx, pattern in enumerate(self.patterns):
-            print(pattern)
             file_name = os.path.join(self.patch_candidates_dir, f"patch_candidate_{idx + 1}.java")
             with open(file_name, "w") as patch_file:
                 prompt = self.get_prompt(pattern)
                 response = self.model.generate_response(prompt)
-                print(pattern)
                 patch_file.write(response)
 
         print(f"Generated {len(self.patterns)} patch candidate files in '{self.patch_candidates_dir}'.")
