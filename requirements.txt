@@ -1,0 +1,6 @@
+faiss==1.5.3
+huggingface_hub==0.25.1
+langchain_text_splitters==0.3.6
+numpy==2.2.3
+sentence_transformers==3.4.1
+transformers==4.45.1

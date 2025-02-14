@@ -2,7 +2,7 @@ import json
 import sys
 import os
 
-from rag.rag_db import RAG
+from rag.rag import RAG
 from fault_loc.fault_localization import FaultLocalization
 from pattern_match.pattern_matching import PatternMatch
 from patch_gen.patch_generation import PatchGeneration
