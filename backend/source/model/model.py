@@ -30,7 +30,7 @@ class Model:
         return Path(__file__).parent / "model_configs.json"
 
     # loads the configs
-    def _load_model_configs(self) -> Dict[str, Any]:
+    def _load_model_configs(self) -> Any:
         try:
             with open(self.config_path, 'r') as f:
                 return json.load(f)
@@ -40,7 +40,7 @@ class Model:
             raise ValueError(f"Invalid configuration file: {str(e)}")
 
     # based on model passed from selection, loads specific model configs
-    def _get_model_config(self, model: str) -> Dict[str, Any]:
+    def _get_model_config(self, model: str) -> Any:
         if model not in self.model_configs["models"]:
             raise ValueError(f"Unsupported model: {model}")
         return self.model_configs["models"][model]
@@ -76,15 +76,15 @@ class Model:
         return len(self.tokenizer.encode(text))
 
     # returns if the prompt can fit in the context window
-    def is_within_context_window(self, text: str) -> bool:
+    def is_within_context_window(self, text: str) -> Any:
         return self.get_token_count(text) <= self.max_context
 
     # returns if the model can return full file in the response window
-    def is_within_response_window(self, text: str) -> bool:
+    def is_within_response_window(self, text: str) -> Any:
         return self.get_token_count(text) <= self.max_response
 
     # generate the response based on model and config
-    def generate_response(self, prompt: str, **kwargs) -> str:
+    def generate_response(self, prompt: str, **kwargs: Dict[str, Any]) -> Any:
         if not self.is_within_context_window(prompt):
             # need to chunk the input
             pass

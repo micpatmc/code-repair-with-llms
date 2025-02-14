@@ -1,10 +1,3 @@
-"""
-Here, this class will store the vector db for the model to refer to 
-rather than passing the code files to the prompts each time.
-
-This class must be initialized and populated prior to the first stage
-in the pipeline
-"""
 import faiss
 import numpy as np
 import os
@@ -14,15 +7,15 @@ from langchain_text_splitters import (
     RecursiveCharacterTextSplitter,
 )
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 class RAG:
-    def __init__(self, model_name='all-MiniLM-L6-v2', index_path='code_index.faiss'):
-        self.model = SentenceTransformer(model_name)
-        self.index_path = index_path
-        self.index = None
-        self.code_chunks = []
-        self.metadata = []
+    def __init__(self, model_name: str = 'all-MiniLM-L6-v2', index_path: str = 'code_index.faiss'):
+        self.model: SentenceTransformer = SentenceTransformer(model_name)
+        self.index_path: str = index_path
+        self.index: Optional[faiss.Index] = None
+        self.code_chunks: List[str] = []
+        self.metadata: List[Dict[str, Any]] = []
 
         # initializes faiss index if not found then must be first run
         if not self.index_path or not os.path.exists(self.index_path):
@@ -34,8 +27,7 @@ class RAG:
                 print(f"Warning: Could not load index from {self.index_path}. Creating new index.")
                 self.index = None
 
-    # extract content from each file just for one file
-    def extract_content(self, file_path) -> dict:
+    def extract_content(self, file_path: str) -> Dict[str, str]:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 filename = os.path.basename(file_path)
@@ -48,8 +40,7 @@ class RAG:
             print(f"Warning: Could not process file {file_path}: {str(e)}")
             return {"filename": "", "content": ""}
 
-    # embed code into faiss file
-    def embed_code(self, code_files: list[dict]):
+    def embed_code(self, code_files: List[Dict[str, str]]) -> None:  # Added -> None
         code_chunks = []
         metadata = []
 
@@ -95,7 +86,6 @@ class RAG:
         faiss.write_index(self.index, self.index_path)
 
     def _split_into_chunks(self, content: str, lang: str, chunk_size: int = 500, overlap: int = 50) -> List[str]:
-        
         # error catching
         if not content:
             raise ValueError("Content cannot be empty")
@@ -142,8 +132,7 @@ class RAG:
             raise RuntimeError(f"Error splitting content into chunks: {str(e)}")
 
 
-    # retrieves relevant code chunks based on query
-    def retrieve_context(self, query, k=5):
+    def retrieve_context(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
         if self.index is None or self.index.ntotal == 0:
             raise ValueError("The Faiss index is empty. Please embed code before querying.")
 
@@ -166,13 +155,13 @@ class RAG:
 
         return results
 
-    def clear_index(self):
+    def clear_index(self) -> None:  # Added -> None
         self.index = faiss.IndexFlatL2(384)
         self.code_chunks = []
         self.metadata = []
         faiss.write_index(self.index, self.index_path)
 
-    def format_prompt(self, query, context):
+    def format_prompt(self, query: str, context: List[Dict[str, Any]]) -> str:
         # Include only the top 3 most relevant context sections based on similarity score
         sorted_context = sorted(context, key=lambda x: x['similarity_score'], reverse=True)[:3]
         

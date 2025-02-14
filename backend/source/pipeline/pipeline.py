@@ -1,6 +1,7 @@
 import json
 import sys
 import os
+from typing import List, Dict, Optional, Any
 
 from rag.rag import RAG
 from fault_loc.fault_localization import FaultLocalization
@@ -14,39 +15,39 @@ from source.model.model import Model
 """
 this pipeline will be the main process for the pipeline that is being integrated
 """
-class Pipeline():
-    def __init__(self):
-        self.model = None
-        self.rag = None
-        self.stage1 = False
-        self.stage2 = False
-        self.stage3 = False
-        self.stage4 = False
+class Pipeline:
+    def __init__(self) -> None:
+        self.model: Optional[Model] = None
+        self.rag: Optional[RAG] = None
+        self.stage1: bool = False
+        self.stage2: bool = False
+        self.stage3: bool = False
+        self.stage4: bool = False
 
-    def set_rag(self):
+    def set_rag(self) -> None:
         self.rag = RAG()
 
     # define the model being used throughout the pipeline
-    def set_model(self, model_selection: str):
+    def set_model(self, model_selection: str) -> None:
         try:
             self.model = Model(model_selection)
         except Exception as e:
             print(f"Error setting model: {e}")
 
     # first stage which determines where the fault/vulnerability is
-    def fault_localization(self, precode_content):
+    def fault_localization(self, precode_content: str) -> Any:
         fl = FaultLocalization(self.model, precode_content)
         fl.calculate_fault_localization()
         return fl.fault_localization
 
     # second stage determines the type of fault/vulnerability
-    def pattern_matching(self, localization: str):
+    def pattern_matching(self, localization: str) -> Any:
         pm = PatternMatch(self.model, self.rag, localization)
         pm.execute_pattern_matching()
         return pm.get_matches()
 
     # third stage creates the patches and places them in the code
-    def patch_generation(self, precode_content, patterns, output_dir="patch_candidates"):
+    def patch_generation(self, precode_content: str, patterns: List[str], output_dir: str = "patch_candidates") -> str:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
@@ -55,13 +56,13 @@ class Pipeline():
         return output_dir
 
     # last stage determines if the fixes are corrected
-    def patch_validation(self, fixed_code_path):
+    def patch_validation(self, fixed_code_path: str) -> Any:
         validator = PatchValidation(reference_file=fixed_code_path)
         return validator.validate_patches()
 
-def create_code_dict(file_path):
+def create_code_dict(file_path: str) -> List[Dict[str, str]]:
     # Initialize the list to store dictionaries for each entry
-    code_dicts = []
+    code_dicts: List[Dict[str, str]] = []
     
     # Open and read the JSON file
     with open(file_path, 'r') as file:
@@ -70,7 +71,7 @@ def create_code_dict(file_path):
     # Process each entry in the JSON file
     for entry in data:
         # Initialize a dictionary for this entry
-        code_dict = {}
+        code_dict: Dict[str, str] = {}
         
         # Extract the pre_code
         if 'pre_code' in entry:
@@ -101,7 +102,7 @@ def create_code_dict(file_path):
     
     return code_dicts
 
-def write_to_file(content):
+def write_to_file(content: str) -> None:
     # Open the file in write mode
     with open("output.txt", 'a') as file:
         # Write the content to the file
@@ -109,7 +110,7 @@ def write_to_file(content):
         # Close the file
         file.close()
 
-def main():
+def main() -> None:
     # create pipeline
     pipeline = Pipeline()
     
@@ -137,7 +138,11 @@ def main():
         "filename": "ObjectArrayCodec.java",
         "content": code_content
     }]
-    pipeline.rag.embed_code(code_files)
+    if pipeline.rag:
+        pipeline.rag.embed_code(code_files)
+    else:
+        raise ValueError("RAG instance is not set.")
+
 
     # Fault localization
     write_to_file("#### Fault Localization ####\n")
