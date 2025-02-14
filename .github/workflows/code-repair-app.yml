@@ -2,9 +2,9 @@ name: Python application
 
 on:
   push:
-    branches: [ "main" , "pv2" ]  # Include pv2 branch
+    branches: [ "main" , "pv2", "pv2.1" ]  # Include pv2 branch
   pull_request:
-    branches: [ "main" , "pv2" ]
+    branches: [ "main" , "pv2", "pv2.1" ]
 
 permissions:
   contents: read
