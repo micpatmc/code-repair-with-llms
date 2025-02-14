@@ -1,13 +1,14 @@
 import os
 import difflib
 import shutil
+from typing import Optional
 
 class PatchValidation:
-    def __init__(self, patch_dir="patch_candidates", reference_file="fixed_code.java"):
+    def __init__(self, patch_dir: str = "patch_candidates", reference_file: str = "fixed_code.java") -> None:
         self.patch_dir = patch_dir
         self.reference_file = reference_file
 
-    def validate_patches(self):
+    def validate_patches(self) -> Optional[str]:
         if not os.path.exists(self.reference_file):
             print(f"Reference file '{self.reference_file}' does not exist.")
             return None

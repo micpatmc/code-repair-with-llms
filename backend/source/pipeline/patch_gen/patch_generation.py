@@ -1,7 +1,8 @@
 import os
+from typing import List, Any
 
 class PatchGeneration:
-    def __init__(self, model, file_contents:str, patterns):
+    def __init__(self, model: Any, file_contents: str, patterns: List[str]) -> None:
         self.model = model
         self.patterns = patterns
         self.file_contents = file_contents
@@ -20,7 +21,7 @@ class PatchGeneration:
         pattern: {pattern}
         """
 
-    def create_patch_files(self):
+    def create_patch_files(self) -> None:
         # Ensure the output directory exists
         os.makedirs(self.patch_candidates_dir, exist_ok=True)
 
@@ -37,6 +38,6 @@ class PatchGeneration:
 # Example usage
 if __name__ == "__main__":
     # Assuming patterns from the pattern matching stage are provided
-
-    patch_gen = PatchGeneration()
+    
+    patch_gen = PatchGeneration(model=None, file_contents="", patterns=[])  # Provide actual arguments
     patch_gen.create_patch_files()

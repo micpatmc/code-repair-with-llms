@@ -8,7 +8,7 @@ from pathlib import Path
 HF_TOKEN = "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"
 
 class Model:
-    def __init__(self, model: str = None):
+    def __init__(self, model: str = ""):
         # retrieves the config path and creates list of model configs
         self.config_path = self._get_config_path()
         self.model_configs = self._load_model_configs()

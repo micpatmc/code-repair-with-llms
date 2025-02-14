@@ -1,21 +1,21 @@
 import re
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Any
 from transformers import AutoTokenizer
 from huggingface_hub import InferenceClient
 import os
 
 class FaultLocalization:
-    def __init__(self, model, file_contents: str):
+    def __init__(self, model: Any, file_contents: str) -> None:
         self.model = model  # Model object
         self.file_contents = file_contents
         self.max_tokens = self.model.max_context - 250  # Adjust max tokens per chunk
-        self.chunks = self._chunk_code()
-        self.fault_localization = None
+        self.chunks: List[Tuple[int, str]] = self._chunk_code()
+        self.fault_localization: Optional[str] = None
     
     def _chunk_code(self) -> List[Tuple[int, str]]:
         tokens = self.model.tokenizer.encode(self.file_contents, add_special_tokens=False)
         chunk_size = self.max_tokens
-        chunks = []
+        chunks: List[Tuple[int, str]] = []
         
         for i in range(0, len(tokens), chunk_size):
             chunk_tokens = tokens[i:i + chunk_size]
@@ -80,8 +80,8 @@ Here is the analysis:
 {response}
         """
     
-    def calculate_fault_localization(self):
-        accumulated_responses = []
+    def calculate_fault_localization(self) -> None:
+        accumulated_responses: List[str] = []
         
         for index, chunk in self.chunks:
             response = self.model.generate_response(self.get_prompt(chunk))
