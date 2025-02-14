@@ -1,4 +1,4 @@
-faiss==1.5.3
+#faiss==1.5.3       needs correction
 huggingface_hub==0.25.1
 langchain_text_splitters==0.3.6
 numpy==2.2.3
