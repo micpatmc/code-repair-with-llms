@@ -42,4 +42,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest tests/  # Run tests specifically from the "tests" directory
+        pytest backend/tests/  # Run tests specifically from the "tests" directory
